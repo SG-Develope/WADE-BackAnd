@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wade.wadeapi.mapper.PlaceMapper">
+
+    <resultMap id="PlaceMap" type="com.wade.wadeapi.domain.Place">
+        <id     property="id"        column="id"/>
+        <result property="name"      column="name"/>
+        <result property="type"      column="type"/>
+        <result property="icon"      column="icon"/>
+        <result property="lat"       column="lat"/>
+        <result property="lng"       column="lng"/>
+        <result property="stationId" column="station_id"/>
+        <result property="safeWl"    column="safe_wl"/>
+        <result property="cautionWl" column="caution_wl"/>
+        <collection property="amenities" ofType="string"
+                    select="findAmenities" column="id"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="PlaceMap">
+        SELECT id, name, type, icon, lat, lng, station_id, safe_wl, caution_wl
+        FROM place
+        ORDER BY id
+    </select>
+
+    <select id="findAmenities" resultType="string">
+        SELECT amenity FROM place_amenity WHERE place_id = #{id}
+    </select>
+
+</mapper>

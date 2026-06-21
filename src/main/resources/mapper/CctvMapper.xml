@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wade.wadeapi.mapper.CctvMapper">
+
+    <resultMap id="CctvMap" type="com.wade.wadeapi.domain.Cctv">
+        <id     property="id"        column="id"/>
+        <result property="name"      column="name"/>
+        <result property="location"  column="location"/>
+        <result property="stationId" column="station_id"/>
+        <result property="streamUrl" column="stream_url"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="CctvMap">
+        SELECT id, name, location, station_id, stream_url
+        FROM cctv
+        ORDER BY id
+    </select>
+
+</mapper>
