@@ -71,8 +71,11 @@ public class WaterLevelService {
         try {
             return fetchHistoryFromHrfco(station, hours);
         } catch (Exception e) {
-            log.error("수위 이력 API 실패: {}", e.getMessage());
-            throw new RuntimeException("수위 이력 데이터를 가져올 수 없습니다: " + e.getMessage());
+            log.error("수위 이력 API 실패 (IP 차단 가능): {}", e.getMessage());
+            return WaterLevelHistoryResponse.builder()
+                    .stationId(stationId)
+                    .history(Collections.emptyList())
+                    .build();
         }
     }
 
