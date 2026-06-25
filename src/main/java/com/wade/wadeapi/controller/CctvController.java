@@ -4,9 +4,7 @@ import com.wade.wadeapi.domain.Cctv;
 import com.wade.wadeapi.mapper.CctvMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
@@ -19,5 +17,10 @@ public class CctvController {
     @GetMapping
     public ResponseEntity<List<Cctv>> getAll() {
         return ResponseEntity.ok(cctvMapper.findAll());
+    }
+
+    @GetMapping("/station/{stationId}")
+    public ResponseEntity<List<Cctv>> getByStation(@PathVariable String stationId) {
+        return ResponseEntity.ok(cctvMapper.findByStationId(stationId));
     }
 }

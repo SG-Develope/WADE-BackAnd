@@ -1,15 +1,11 @@
 package com.wade.wadeapi.controller;
 
-import com.wade.wadeapi.domain.StationMeta;
 import com.wade.wadeapi.dto.WaterLevelCurrentResponse;
 import com.wade.wadeapi.dto.WaterLevelHistoryResponse;
-import com.wade.wadeapi.mapper.StationMetaMapper;
 import com.wade.wadeapi.service.WaterLevelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/water-levels")
@@ -17,12 +13,6 @@ import java.util.List;
 public class WaterLevelController {
 
     private final WaterLevelService waterLevelService;
-    private final StationMetaMapper stationMetaMapper;
-
-    @GetMapping("/meta")
-    public ResponseEntity<List<StationMeta>> getMeta() {
-        return ResponseEntity.ok(stationMetaMapper.findAll());
-    }
 
     @GetMapping("/current")
     public ResponseEntity<WaterLevelCurrentResponse> getCurrent() {

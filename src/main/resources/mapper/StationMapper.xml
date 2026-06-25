@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wade.wadeapi.mapper.StationMapper">
+
+  <resultMap id="stationMap" type="com.wade.wadeapi.domain.Station">
+    <id     property="id"          column="id"/>
+    <result property="obsCode"     column="obs_code"/>
+    <result property="name"        column="name"/>
+    <result property="location"    column="location"/>
+    <result property="datum"       column="datum"/>
+    <result property="wlAttention" column="wl_attention"/>
+    <result property="wlWarning"   column="wl_warning"/>
+    <result property="wlAlarm"     column="wl_alarm"/>
+    <result property="wlSerious"   column="wl_serious"/>
+    <result property="wlFlood"     column="wl_flood"/>
+  </resultMap>
+
+  <select id="findAll" resultMap="stationMap">
+    SELECT * FROM station ORDER BY id
+  </select>
+
+  <select id="findById" resultMap="stationMap">
+    SELECT * FROM station WHERE id = #{id}
+  </select>
+
+</mapper>
