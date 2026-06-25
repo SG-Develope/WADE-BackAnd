@@ -6,7 +6,10 @@ import lombok.Data;
 public class Cctv {
     private String id;
     private String name;
-    private String location;
+    private String location;    // station JOIN
     private String stationId;
+    private double lat;
+    private double lng;
+    private String format;
     private String streamUrl;
 }

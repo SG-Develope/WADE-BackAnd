@@ -2,7 +2,9 @@ package com.wade.wadeapi.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wade.wadeapi.domain.WeatherGrid;
 import com.wade.wadeapi.dto.*;
+import com.wade.wadeapi.mapper.WeatherGridMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,16 +26,23 @@ import java.util.Map;
 public class WeatherService {
 
     private final RestTemplate restTemplate;
+    private final WeatherGridMapper weatherGridMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${public.data.api-key:}")
     private String apiKey;
 
-    @Value("${wade.weather.gumi.nx:86}")
-    private int nx;
+    private static final int DEFAULT_NX = 86;
+    private static final int DEFAULT_NY = 96;
 
-    @Value("${wade.weather.gumi.ny:96}")
-    private int ny;
+    private WeatherGrid resolveGrid(String stationId) {
+        WeatherGrid grid = weatherGridMapper.findByStationId(stationId);
+        if (grid != null) return grid;
+        WeatherGrid fallback = new WeatherGrid();
+        fallback.setNx(DEFAULT_NX);
+        fallback.setNy(DEFAULT_NY);
+        return fallback;
+    }
 
     private static final String ULTRA_NCST_URL =
             "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
@@ -51,9 +60,10 @@ public class WeatherService {
             "https://apis.data.go.kr/1360000/TyphoonInfoService/getTyphoonInfo";
 
     // ── 현재 날씨 ─────────────────────────────────────────────────────────────
-    public WeatherResponse getCurrentWeather(int nx, int ny) {
+    public WeatherResponse getCurrentWeather(String stationId) {
         try {
-            return fetchWeatherFromApi(nx, ny);
+            WeatherGrid grid = resolveGrid(stationId);
+            return fetchWeatherFromApi(grid.getNx(), grid.getNy());
         } catch (Exception e) {
             log.error("날씨 API 실패: {}", e.getMessage());
             throw new RuntimeException("날씨 데이터를 가져올 수 없습니다: " + e.getMessage());
@@ -131,7 +141,9 @@ public class WeatherService {
     }
 
     // ── 단기예보 ──────────────────────────────────────────────────────────────
-    public List<ShortForecastItem> getShortForecast(int nx, int ny) {
+    public List<ShortForecastItem> getShortForecast(String stationId) {
+        WeatherGrid grid = resolveGrid(stationId);
+        int nx = grid.getNx(), ny = grid.getNy();
         try {
             String baseDate = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             String baseTime = calcVilageFcstBaseTime();
@@ -185,7 +197,9 @@ public class WeatherService {
     }
 
     // ── 초단기예보 ────────────────────────────────────────────────────────────
-    public List<UltraShortForecastItem> getUltraShortForecast(int nx, int ny) {
+    public List<UltraShortForecastItem> getUltraShortForecast(String stationId) {
+        WeatherGrid grid = resolveGrid(stationId);
+        int nx = grid.getNx(), ny = grid.getNy();
         try {
             String baseDate = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             String baseTime = calcUltraSrtFcstBaseTime();

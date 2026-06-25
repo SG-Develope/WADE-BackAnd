@@ -1,27 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- deprecated: station_meta 테이블 제거됨. 이 파일은 삭제해도 됩니다. -->
 <mapper namespace="com.wade.wadeapi.mapper.StationMetaMapper">
-
-  <resultMap id="stationMetaMap" type="com.wade.wadeapi.domain.StationMeta">
-    <id     property="id"       column="id"/>
-    <result property="wlobscd"  column="wlobscd"/>
-    <result property="name"     column="name"/>
-    <result property="location" column="location"/>
-    <result property="gdt"      column="gdt"/>
-    <result property="attwl"    column="attwl"/>
-    <result property="wrnwl"    column="wrnwl"/>
-    <result property="almwl"    column="almwl"/>
-    <result property="srswl"    column="srswl"/>
-    <result property="pfh"      column="pfh"/>
-  </resultMap>
-
-  <select id="findAll" resultMap="stationMetaMap">
-    SELECT * FROM station_meta ORDER BY id
-  </select>
-
-  <select id="findById" resultMap="stationMetaMap">
-    SELECT * FROM station_meta WHERE id = #{id}
-  </select>
-
 </mapper>

@@ -2,9 +2,9 @@ package com.wade.wadeapi.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wade.wadeapi.domain.StationMeta;
+import com.wade.wadeapi.domain.Station;
 import com.wade.wadeapi.dto.*;
-import com.wade.wadeapi.mapper.StationMetaMapper;
+import com.wade.wadeapi.mapper.StationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +24,7 @@ import java.util.List;
 public class WaterLevelService {
 
     private final RestTemplate restTemplate;
-    private final StationMetaMapper stationMetaMapper;
+    private final StationMapper stationMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${hrfco.api-key:}")
@@ -33,10 +33,10 @@ public class WaterLevelService {
     private static final String HRFCO_BASE = "https://api.hrfco.go.kr";
 
     public WaterLevelCurrentResponse getCurrent() {
-        List<StationMeta> stationList = stationMetaMapper.findAll();
+        List<Station> stationList = stationMapper.findAll();
         List<StationWaterLevel> stations = new ArrayList<>();
-        for (StationMeta station : stationList) {
-            double level = fetchCurrentLevelFromHrfco(station.getWlobscd(), station.getName());
+        for (Station station : stationList) {
+            double level = fetchCurrentLevel(station.getObsCode(), station.getName());
             stations.add(buildStationResponse(station, level));
         }
         return WaterLevelCurrentResponse.builder()
@@ -45,10 +45,10 @@ public class WaterLevelService {
                 .build();
     }
 
-    private double fetchCurrentLevelFromHrfco(String wlobscd, String name) {
+    private double fetchCurrentLevel(String obsCode, String name) {
         try {
             String url = String.format("%s/%s/waterlevel/list/10M/%s.json",
-                    HRFCO_BASE, hrfcoApiKey, wlobscd);
+                    HRFCO_BASE, hrfcoApiKey, obsCode);
             String response = restTemplate.getForObject(url, String.class);
             JsonNode content = objectMapper.readTree(response).path("content");
             if (content.isArray() && content.size() > 0) {
@@ -66,10 +66,10 @@ public class WaterLevelService {
     }
 
     public WaterLevelHistoryResponse getHistory(String stationId, int hours) {
-        StationMeta station = stationMetaMapper.findById(stationId);
+        Station station = stationMapper.findById(stationId);
         if (station == null) throw new RuntimeException("관측소를 찾을 수 없습니다: " + stationId);
         try {
-            return fetchHistoryFromHrfco(station, hours);
+            return fetchHistory(station, hours);
         } catch (Exception e) {
             log.error("수위 이력 API 실패 (IP 차단 가능): {}", e.getMessage());
             return WaterLevelHistoryResponse.builder()
@@ -79,61 +79,68 @@ public class WaterLevelService {
         }
     }
 
-    private WaterLevelHistoryResponse fetchHistoryFromHrfco(StationMeta station, int hours) throws Exception {
+    private WaterLevelHistoryResponse fetchHistory(Station station, int hours) throws Exception {
         LocalDateTime raw = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
 
         String url;
-        String ymdhPattern;
+        String interval;
         if (hours <= 6) {
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-            LocalDateTime now = raw.withMinute((raw.getMinute() / 10) * 10).withSecond(0).withNano(0);
+            LocalDateTime now   = raw.withMinute((raw.getMinute() / 10) * 10).withSecond(0).withNano(0);
             LocalDateTime start = now.minusHours(hours);
-            url = String.format("%s/%s/waterlevel/list/10M/%s/%s/%s.json",
-                    HRFCO_BASE, hrfcoApiKey, station.getWlobscd(), start.format(fmt), now.format(fmt));
-            ymdhPattern = "10M";
+            url      = String.format("%s/%s/waterlevel/list/10M/%s/%s/%s.json",
+                    HRFCO_BASE, hrfcoApiKey, station.getObsCode(), start.format(fmt), now.format(fmt));
+            interval = "10M";
         } else {
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-            LocalDateTime now = raw.withMinute(0).withSecond(0).withNano(0);
+            LocalDateTime now   = raw.withMinute(0).withSecond(0).withNano(0);
             LocalDateTime start = now.minusHours(hours);
-            url = String.format("%s/%s/waterlevel/list/1H/%s/%s/%s.json",
-                    HRFCO_BASE, hrfcoApiKey, station.getWlobscd(), start.format(fmt), now.format(fmt));
-            ymdhPattern = "1H";
+            url      = String.format("%s/%s/waterlevel/list/1H/%s/%s/%s.json",
+                    HRFCO_BASE, hrfcoApiKey, station.getObsCode(), start.format(fmt), now.format(fmt));
+            interval = "1H";
         }
-        log.info("[히스토리] {}h ({}) URL: {}", hours, ymdhPattern, url);
+        log.info("[히스토리] {}h ({}) URL: {}", hours, interval, url);
 
         String response = restTemplate.getForObject(url, String.class);
-        log.info("[히스토리] 응답 앞 200자: {}", response != null ? response.substring(0, Math.min(200, response.length())) : "null");
+        log.info("[히스토리] 응답 앞 200자: {}",
+                response != null ? response.substring(0, Math.min(200, response.length())) : "null");
         JsonNode content = objectMapper.readTree(response).path("content");
 
-        List<WaterLevelHistoryPoint> historyPoints = new ArrayList<>();
+        List<WaterLevelHistoryPoint> points = new ArrayList<>();
         if (content.isArray()) {
             for (JsonNode item : content) {
-                String wlStr = item.path("wl").asText("").trim();
-                String ymdhm = item.path("ymdhm").asText("");
+                String wlStr  = item.path("wl").asText("").trim();
+                String ymdhm  = item.path("ymdhm").asText("");
                 if (wlStr.isEmpty() || wlStr.equals("null")) continue;
 
                 double level = Double.parseDouble(wlStr);
-                String measuredAt = "";
-                if (ymdhm.length() == 12) {
-                    // 10M: yyyyMMddHHmm
-                    measuredAt = ymdhm.substring(0, 4) + "-" + ymdhm.substring(4, 6) + "-"
-                            + ymdhm.substring(6, 8) + "T" + ymdhm.substring(8, 10) + ":"
-                            + ymdhm.substring(10, 12) + ":00";
-                } else if (ymdhm.length() == 10) {
-                    // 1H: yyyyMMddHH
-                    measuredAt = ymdhm.substring(0, 4) + "-" + ymdhm.substring(4, 6) + "-"
-                            + ymdhm.substring(6, 8) + "T" + ymdhm.substring(8, 10) + ":00:00";
-                }
-                historyPoints.add(WaterLevelHistoryPoint.builder()
-                        .level(level).status(calcStatus(station, level)).measuredAt(measuredAt)
+                String measuredAt = parseYmdhm(ymdhm);
+                points.add(WaterLevelHistoryPoint.builder()
+                        .level(level)
+                        .status(calcStatus(station, level))
+                        .measuredAt(measuredAt)
                         .build());
             }
         }
-        Collections.reverse(historyPoints);
-        return WaterLevelHistoryResponse.builder().stationId(station.getId()).history(historyPoints).build();
+        Collections.reverse(points);
+        return WaterLevelHistoryResponse.builder()
+                .stationId(station.getId())
+                .history(points)
+                .build();
     }
 
-    private StationWaterLevel buildStationResponse(StationMeta station, double level) {
+    private String parseYmdhm(String ymdhm) {
+        if (ymdhm.length() == 12) {
+            return ymdhm.substring(0, 4) + "-" + ymdhm.substring(4, 6) + "-"
+                    + ymdhm.substring(6, 8) + "T" + ymdhm.substring(8, 10) + ":"
+                    + ymdhm.substring(10, 12) + ":00";
+        } else if (ymdhm.length() == 10) {
+            return ymdhm.substring(0, 4) + "-" + ymdhm.substring(4, 6) + "-"
+                    + ymdhm.substring(6, 8) + "T" + ymdhm.substring(8, 10) + ":00:00";
+        }
+        return "";
+    }
+
+    private StationWaterLevel buildStationResponse(Station station, double level) {
         String status = level < 0 ? "unknown" : calcStatus(station, level);
         return StationWaterLevel.builder()
                 .id(station.getId())
@@ -142,19 +149,19 @@ public class WaterLevelService {
                 .currentLevel(Math.max(level, 0))
                 .status(status)
                 .measuredAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-                .normalLevel(station.getAttwl())
-                .cautionLevel(station.getWrnwl())
-                .warningLevel(station.getAlmwl())
-                .criticalLevel(station.getSrswl())
-                .designFloodLevel(station.getPfh())
+                .normalLevel(station.getWlAttention())
+                .cautionLevel(station.getWlWarning())
+                .warningLevel(station.getWlAlarm())
+                .criticalLevel(station.getWlSerious())
+                .designFloodLevel(station.getWlFlood())
                 .build();
     }
 
-    private String calcStatus(StationMeta station, double level) {
+    private String calcStatus(Station station, double level) {
         if (station == null) return "normal";
-        if (level >= station.getSrswl()) return "critical";
-        if (level >= station.getAlmwl()) return "warning";
-        if (level >= station.getAttwl()) return "caution";
+        if (level >= station.getWlSerious()) return "critical";
+        if (level >= station.getWlAlarm())   return "warning";
+        if (level >= station.getWlAttention()) return "caution";
         return "normal";
     }
 }
