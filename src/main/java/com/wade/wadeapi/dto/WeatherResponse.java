@@ -20,4 +20,5 @@ public class WeatherResponse {
     private String fcstDate;
     private String fcstTime;
     private String measuredAt;
+    private String message; // null이면 정상, 값이 있으면 오류 메시지
 }

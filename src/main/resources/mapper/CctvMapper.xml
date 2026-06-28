@@ -4,25 +4,26 @@
 <mapper namespace="com.wade.wadeapi.mapper.CctvMapper">
 
     <resultMap id="CctvMap" type="com.wade.wadeapi.domain.Cctv">
-        <id     property="id"         column="id"/>
-        <result property="name"       column="name"/>
-        <result property="location"   column="location"/>
-        <result property="stationId"  column="station_id"/>
-        <result property="streamUrl"  column="stream_url"/>
-        <result property="lat"        column="lat"/>
-        <result property="lng"        column="lng"/>
-        <result property="format"     column="format"/>
+        <id     property="id"          column="id"/>
+        <result property="name"        column="name"/>
+        <result property="location"    column="location"/>
+        <result property="stationId"   column="station_id"/>
+        <result property="stationName" column="station_name"/>
+        <result property="streamUrl"   column="stream_url"/>
+        <result property="lat"         column="lat"/>
+        <result property="lng"         column="lng"/>
+        <result property="format"      column="format"/>
     </resultMap>
 
     <select id="findAll" resultMap="CctvMap">
-        SELECT c.id, c.name, s.location, c.station_id, c.stream_url, c.lat, c.lng, c.format
+        SELECT c.id, c.name, s.location, c.station_id, s.name AS station_name, c.stream_url, c.lat, c.lng, c.format
         FROM cctv c
         JOIN station s ON c.station_id = s.id
         ORDER BY c.station_id, c.id
     </select>
 
     <select id="findByStationId" resultMap="CctvMap">
-        SELECT c.id, c.name, s.location, c.station_id, c.stream_url, c.lat, c.lng, c.format
+        SELECT c.id, c.name, s.location, c.station_id, s.name AS station_name, c.stream_url, c.lat, c.lng, c.format
         FROM cctv c
         JOIN station s ON c.station_id = s.id
         WHERE c.station_id = #{stationId}
