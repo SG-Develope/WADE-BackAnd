@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wade.wadeapi.domain.WeatherGrid;
 import com.wade.wadeapi.dto.*;
+import org.springframework.web.client.HttpClientErrorException;
 import com.wade.wadeapi.mapper.WeatherGridMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +65,11 @@ public class WeatherService {
         try {
             WeatherGrid grid = resolveGrid(stationId);
             return fetchWeatherFromApi(grid.getNx(), grid.getNy());
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            log.warn("날씨 API 429 — 일일 요청 한도 초과");
+            return WeatherResponse.builder()
+                    .message("오늘 날씨 API 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.")
+                    .build();
         } catch (Exception e) {
             log.error("날씨 API 실패: {}", e.getMessage());
             throw new RuntimeException("날씨 데이터를 가져올 수 없습니다: " + e.getMessage());

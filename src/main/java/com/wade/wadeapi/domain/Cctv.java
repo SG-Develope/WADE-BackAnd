@@ -8,6 +8,7 @@ public class Cctv {
     private String name;
     private String location;    // station JOIN
     private String stationId;
+    private String stationName;
     private double lat;
     private double lng;
     private String format;
