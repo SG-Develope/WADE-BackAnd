@@ -142,7 +142,7 @@ public class AiGuideService {
         if (level < 2.5)  return "성인 머리 위";
         if (level < 3.5)  return "버스 지붕 높이";
         if (level < 5.0)  return "2층 건물 높이";
-        return "아파트 2~3층 높이 — 매우 위험";
+        return "아파트 2~3층 높이";
     }
 
     private String generateRuleBasedMessage(double yangpo, double hoguk,
@@ -181,7 +181,7 @@ public class AiGuideService {
                 "🌿 낙동강 전 구간 정상 수위입니다. 양포교 %.2fm(관심수위 대비 %+.2fm, %s), " +
                 "호국의다리 %.2fm(관심수위 대비 %+.2fm, %s)으로 안전한 상태입니다. " +
                 "산책·자전거·낚시·캠핑 모두 이용 가능하며, 강변 여가 활동을 즐기기 좋은 날입니다. " +
-                "다만 날씨 변화나 상류 방류 상황에 따라 수위가 변동될 수 있으니 WADE 앱으로 수시 확인하세요! 😊",
+                "다만 날씨 변화나 상류 방류 상황에 따라 수위가 변동될 수 있으니 WADE 앱으로 수시 확인하세요!",
                 yangpo, yDiff, heightLabel(yangpo), hoguk, hDiff, heightLabel(hoguk));
         }
     }

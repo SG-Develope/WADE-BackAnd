@@ -13,11 +13,11 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager manager = new CaffeineCacheManager("aiGuide");
+        CaffeineCacheManager manager = new CaffeineCacheManager("aiGuide", "cctvUrls");
         manager.setCaffeine(
             Caffeine.newBuilder()
                 .expireAfterWrite(10, TimeUnit.MINUTES)
-                .maximumSize(20)
+                .maximumSize(50)
         );
         return manager;
     }

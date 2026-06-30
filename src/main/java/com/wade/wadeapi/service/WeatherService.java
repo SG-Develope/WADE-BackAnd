@@ -196,6 +196,9 @@ public class WeatherService {
                     .map(ShortForecastItem.ShortForecastItemBuilder::build)
                     .limit(16)
                     .toList();
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            log.warn("단기예보 API 429 — 일일 요청 한도 초과");
+            throw e;
         } catch (Exception e) {
             log.error("단기예보 API 실패: {}", e.getMessage());
             return List.of();
@@ -252,6 +255,9 @@ public class WeatherService {
                     .map(UltraShortForecastItem.UltraShortForecastItemBuilder::build)
                     .limit(6)
                     .toList();
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            log.warn("초단기예보 API 429 — 일일 요청 한도 초과");
+            throw e;
         } catch (Exception e) {
             log.error("초단기예보 API 실패: {}", e.getMessage());
             return List.of();
