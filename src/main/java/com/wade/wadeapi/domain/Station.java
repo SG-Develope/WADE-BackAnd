@@ -14,4 +14,8 @@ public class Station {
     private double wlAlarm;     // 경보
     private double wlSerious;   // 심각
     private double wlFlood;     // 계획홍수위
+    private Double minX;        // ITS API bounding box (경도 최소)
+    private Double maxX;        // ITS API bounding box (경도 최대)
+    private Double minY;        // ITS API bounding box (위도 최소)
+    private Double maxY;        // ITS API bounding box (위도 최대)
 }

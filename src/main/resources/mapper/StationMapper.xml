@@ -14,6 +14,10 @@
     <result property="wlAlarm"     column="wl_alarm"/>
     <result property="wlSerious"   column="wl_serious"/>
     <result property="wlFlood"     column="wl_flood"/>
+    <result property="minX"        column="min_x"/>
+    <result property="maxX"        column="max_x"/>
+    <result property="minY"        column="min_y"/>
+    <result property="maxY"        column="max_y"/>
   </resultMap>
 
   <select id="findAll" resultMap="stationMap">
