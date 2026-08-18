@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wade.wadeapi.mapper.CampingSiteMapper">
+
+    <!--
+      SELECT * + map-underscore-to-camel-case 로 CampingSite 필드에 자동 매핑.
+      WADE 서비스 대상: 구미시·칠곡군만.
+    -->
+    <select id="findAll" resultType="com.wade.wadeapi.domain.CampingSite">
+        SELECT *
+        FROM camping_site
+        WHERE sigungu IN ('구미시', '칠곡군')
+        ORDER BY sigungu, facility_name
+    </select>
+
+</mapper>
