@@ -1,7 +1,7 @@
-INSERT INTO station (id, obs_code, name, location, datum, wl_attention, wl_warning, wl_alarm, wl_serious, wl_flood)
+INSERT INTO station (id, obs_code, name, location, datum, wl_attention, wl_warning, wl_alarm, wl_serious, wl_flood, min_x, max_x, min_y, max_y)
 VALUES
-  ('yangpo', '2011625', '양포교',     '구미시', 27.78,  3.0,  4.0,  5.1,  6.17,  6.17),
-  ('hoguk',  '2011650', '호국의다리', '칠곡군', 11.532, 8.46, 11.6, 13.1, 15.81, 15.81)
+  ('yangpo', '2011625', '양포교',     '구미시', 27.78,  3.0,  4.0,  5.1,  6.17,  6.17, 128.30, 128.42, 36.05, 36.20),
+  ('hoguk',  '2011650', '호국의다리', '칠곡군', 11.532, 8.46, 11.6, 13.1, 15.81, 15.81, 128.35, 128.42, 35.95, 36.02)
 ON CONFLICT (id) DO UPDATE SET
     obs_code     = EXCLUDED.obs_code,
     wl_attention = EXCLUDED.wl_attention,
