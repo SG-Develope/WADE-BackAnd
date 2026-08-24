@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wade.wadeapi.mapper.TrailMapper">
+
+    <!--
+      목록 조회: GPX 원문(gpx_xml)은 무거우므로 제외하고 메타데이터만 반환.
+      map-underscore-to-camel-case 로 Trail 필드에 자동 매핑.
+    -->
+    <select id="findAll" resultType="com.wade.wadeapi.domain.Trail">
+        SELECT course_id, route_id, name, distance_km, duration_min, difficulty,
+               cycle_type, description, summary, tour_point, traveler_info,
+               region, sido, travel_type, created_at, updated_at
+        FROM trail
+        ORDER BY sido, name
+    </select>
+
+    <!-- 경로 좌표 파싱용: DB에 저장된 GPX 원문(XML) -->
+    <select id="findGpxXml" resultType="string">
+        SELECT gpx_xml
+        FROM trail
+        WHERE course_id = #{courseId}
+    </select>
+
+</mapper>
